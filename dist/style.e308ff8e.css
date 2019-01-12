@@ -1,0 +1,25 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+  font-size: 18px;
+}
+#container {
+  width: 700px;
+  border-left: 3px #000 solid;
+  border-right: 3px #000 solid;
+  border-bottom: 3px #000 solid;
+}
+
+#status-bar {
+  height: 50px;
+  background: #000;
+  color: #fff;
+  padding: 0px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+canvas:focus {
+  outline: 0;
+}
