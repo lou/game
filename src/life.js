@@ -1,21 +1,22 @@
 import { ctx, canvas } from './canvas'
-import { hero } from './hero'
+import { ship } from './ship'
 import { collision } from './collision'
 import { game } from './game'
 import { random } from './utils'
 
 export const lifeDefault = {
-  width: 10,
-  height: 10,
+  width: 16,
+  height: 16,
   collided: false,
-  y: -500,
-  x: 100
+  y: 50,
+  x: 200,
+  speed: 0.5
 }
 
 export let life = { ...lifeDefault }
 
 const moveLife = () => {
-  if (collision(life, hero)) {
+  if (collision(life, ship)) {
     game.lifes += 1
     life.y = -100
     life.collided = true
@@ -26,8 +27,11 @@ const moveLife = () => {
 export const drawLife = () => {
   if (!life.collided) {
     moveLife()
-    ctx.fillStyle = 'rgb(25, 174, 97)'
+    ctx.fillStyle = 'black'
     ctx.fillRect(life.x, life.y, life.width, life.height)
+    ctx.font = '8px sans-serif';
+    ctx.fillStyle = 'white';
+    ctx.fillText("♥", life.x + 4, life.y + 11)
   }
 }
 

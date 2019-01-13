@@ -113,7 +113,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.populateKeysMap = exports.keysMap = void 0;
 var keysMap = {};
 exports.keysMap = keysMap;
-var UsableKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'];
+var UsableKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Space'];
 
 var populateKeysMap = function populateKeysMap() {
   if (UsableKeys.includes(event.code)) {
@@ -133,84 +133,7 @@ var canvas = document.getElementById('board');
 exports.canvas = canvas;
 var ctx = canvas.getContext("2d");
 exports.ctx = ctx;
-},{}],"hero.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.resetHero = exports.drawHero = exports.hero = void 0;
-
-var _canvas = require("./canvas");
-
-var _keys = require("./keys");
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-var heroDefault = {
-  speed: 6,
-  width: 30,
-  height: 30,
-  x: _canvas.canvas.width / 2 - 20,
-  y: _canvas.canvas.height - 60,
-  hit: false,
-  opacity: 1
-};
-
-var hero = _objectSpread({}, heroDefault);
-
-exports.hero = hero;
-
-var moveHero = function moveHero() {
-  if (_keys.keysMap['ArrowUp']) {
-    hero.y -= hero.speed;
-  }
-
-  if (_keys.keysMap['ArrowDown']) {
-    hero.y += hero.speed;
-  }
-
-  if (_keys.keysMap['ArrowLeft']) {
-    hero.x -= hero.speed;
-  }
-
-  if (_keys.keysMap['ArrowRight']) {
-    hero.x += hero.speed;
-  } // Wall collision
-
-
-  hero.x = Math.max(Math.min(hero.x, _canvas.canvas.width - hero.width), 0);
-  hero.y = Math.max(Math.min(hero.y, _canvas.canvas.height - hero.height), 0);
-};
-
-var opacityDirection = -1;
-
-var drawHero = function drawHero() {
-  moveHero();
-
-  if (hero.hit) {
-    hero.opacity += opacityDirection * 0.08;
-    if (hero.opacity <= 0.2) opacityDirection = 1;
-    if (hero.opacity >= 1) opacityDirection = -1;
-    _canvas.ctx.fillStyle = "rgb(223, 147, 80, ".concat(hero.opacity, ")");
-  } else {
-    hero.opacity = 1;
-    _canvas.ctx.fillStyle = "rgb(0, 0, 0, ".concat(hero.opacity, ")");
-  }
-
-  _canvas.ctx.fillRect(hero.x, hero.y, hero.width, hero.height);
-};
-
-exports.drawHero = drawHero;
-
-var resetHero = function resetHero() {
-  exports.hero = hero = _objectSpread({}, heroDefault);
-};
-
-exports.resetHero = resetHero;
-},{"./canvas":"canvas.js","./keys":"keys.js"}],"collision.js":[function(require,module,exports) {
+},{}],"collision.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -225,7 +148,124 @@ var collision = function collision(r, h) {
 };
 
 exports.collision = collision;
-},{}],"utils.js":[function(require,module,exports) {
+},{}],"ship.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.resetShip = exports.drawShip = exports.munitions = exports.ship = void 0;
+
+var _canvas = require("./canvas");
+
+var _keys = require("./keys");
+
+var _collision = require("./collision");
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var shipDefault = {
+  speed: 6,
+  width: 30,
+  height: 30,
+  x: _canvas.canvas.width / 2 - 20,
+  y: _canvas.canvas.height - 60,
+  hit: false,
+  opacity: 1
+};
+
+var ship = _objectSpread({}, shipDefault);
+
+exports.ship = ship;
+
+var move = function move() {
+  if (_keys.keysMap['ArrowUp']) {
+    ship.y -= ship.speed;
+  }
+
+  if (_keys.keysMap['ArrowDown']) {
+    ship.y += ship.speed;
+  }
+
+  if (_keys.keysMap['ArrowLeft']) {
+    ship.x -= ship.speed;
+  }
+
+  if (_keys.keysMap['ArrowRight']) {
+    ship.x += ship.speed;
+  } // Wall collision
+
+
+  ship.x = Math.max(Math.min(ship.x, _canvas.canvas.width - ship.width), 0);
+  ship.y = Math.max(Math.min(ship.y, _canvas.canvas.height - ship.height), 0);
+};
+
+var munitions = [];
+exports.munitions = munitions;
+var defaultMunition = {
+  width: 3,
+  height: 3,
+  speed: -10,
+  power: 1
+};
+
+var drawMunitions = function drawMunitions() {
+  munitions.forEach(function (munition, index) {
+    removeMunitionNotShown(munition, index);
+    munition.y += munition.speed;
+    _canvas.ctx.fillStyle = "rgb(0, 0, 0)";
+
+    _canvas.ctx.fillRect(munition.x, munition.y, munition.width, munition.height);
+  });
+};
+
+var removeMunitionNotShown = function removeMunitionNotShown(munition, index) {
+  if (munition.y <= 0) {
+    munitions.splice(index, 1);
+  }
+};
+
+var shoot = function shoot() {
+  if (_keys.keysMap['Space']) {
+    munitions.push(_objectSpread({}, defaultMunition, {
+      x: ship.x + ship.width / 2 - 2,
+      y: ship.y
+    }));
+  }
+};
+
+var opacityDirection = -1;
+
+var handleCollisions = function handleCollisions() {
+  if (ship.hit) {
+    ship.opacity += opacityDirection * 0.08;
+    if (ship.opacity <= 0.2) opacityDirection = 1;
+    if (ship.opacity >= 1) opacityDirection = -1;
+  } else {
+    ship.opacity = 1;
+  }
+};
+
+var drawShip = function drawShip() {
+  move();
+  shoot();
+  drawMunitions();
+  handleCollisions();
+  _canvas.ctx.fillStyle = "rgb(0, 0, 0, ".concat(ship.opacity, ")");
+
+  _canvas.ctx.fillRect(ship.x, ship.y, ship.width, ship.height);
+};
+
+exports.drawShip = drawShip;
+
+var resetShip = function resetShip() {
+  exports.ship = ship = _objectSpread({}, shipDefault);
+};
+
+exports.resetShip = resetShip;
+},{"./canvas":"canvas.js","./keys":"keys.js","./collision":"collision.js"}],"utils.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -248,7 +288,7 @@ exports.resetLife = exports.generateLife = exports.drawLife = exports.life = exp
 
 var _canvas = require("./canvas");
 
-var _hero = require("./hero");
+var _ship = require("./ship");
 
 var _collision = require("./collision");
 
@@ -261,11 +301,12 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 var lifeDefault = {
-  width: 10,
-  height: 10,
+  width: 16,
+  height: 16,
   collided: false,
-  y: -500,
-  x: 100
+  y: 50,
+  x: 200,
+  speed: 0.5
 };
 exports.lifeDefault = lifeDefault;
 
@@ -274,7 +315,7 @@ var life = _objectSpread({}, lifeDefault);
 exports.life = life;
 
 var moveLife = function moveLife() {
-  if ((0, _collision.collision)(life, _hero.hero)) {
+  if ((0, _collision.collision)(life, _ship.ship)) {
     _game.game.lifes += 1;
     life.y = -100;
     life.collided = true;
@@ -286,9 +327,14 @@ var moveLife = function moveLife() {
 var drawLife = function drawLife() {
   if (!life.collided) {
     moveLife();
-    _canvas.ctx.fillStyle = 'rgb(25, 174, 97)';
+    _canvas.ctx.fillStyle = 'black';
 
     _canvas.ctx.fillRect(life.x, life.y, life.width, life.height);
+
+    _canvas.ctx.font = '8px sans-serif';
+    _canvas.ctx.fillStyle = 'white';
+
+    _canvas.ctx.fillText("♥", life.x + 4, life.y + 11);
   }
 };
 
@@ -310,7 +356,7 @@ var resetLife = function resetLife() {
 };
 
 exports.resetLife = resetLife;
-},{"./canvas":"canvas.js","./hero":"hero.js","./collision":"collision.js","./game":"game.js","./utils":"utils.js"}],"game.js":[function(require,module,exports) {
+},{"./canvas":"canvas.js","./ship":"ship.js","./collision":"collision.js","./game":"game.js","./utils":"utils.js"}],"game.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -320,7 +366,7 @@ exports.updateLevel = exports.gameOver = exports.reset = exports.drawStatusBar =
 
 var _life = require("./life");
 
-var _hero = require("./hero");
+var _ship = require("./ship");
 
 var _enemies = require("./enemies");
 
@@ -331,13 +377,14 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 var statusBar = document.getElementById('status-bar');
 exports.statusBar = statusBar;
 var lifesCount = document.getElementById('lifes');
-var gameStatus = document.getElementById('game-status');
 var stageCount = document.getElementById('stage');
+var score = document.getElementById('score');
 var gameDefault = {
   lifes: 1,
   stage: 0,
   paused: true,
-  over: false
+  over: false,
+  score: 0
 };
 exports.gameDefault = gameDefault;
 
@@ -347,7 +394,7 @@ exports.game = game;
 var previousGame = {
   lifes: null,
   stage: null,
-  paused: null
+  score: null
 };
 
 var drawStatusBar = function drawStatusBar() {
@@ -356,24 +403,26 @@ var drawStatusBar = function drawStatusBar() {
     previousGame.lifes = game.lifes;
   }
 
-  if (game.paused !== previousGame.paused) {
-    gameStatus.innerHTML = "".concat(game.paused ? '&#10074;&#10074;' : '▶');
-    previousGame.paused = game.paused;
-  }
-
   if (game.stage !== previousGame.stage) {
     stageCount.innerText = "Stage ".concat(game.stage);
     previousGame.stage = game.stage;
+  }
+
+  if (game.score !== previousGame.score) {
+    score.innerText = game.score.toLocaleString();
+    previousGame.score = game.score;
   }
 };
 
 exports.drawStatusBar = drawStatusBar;
 
 var reset = function reset() {
-  (0, _hero.resetHero)();
+  (0, _ship.resetShip)();
   (0, _life.resetLife)();
   (0, _enemies.resetEnemies)();
-  exports.game = game = _objectSpread({}, gameDefault);
+  exports.game = game = _objectSpread({}, gameDefault, {
+    paused: false
+  });
 };
 
 exports.reset = reset;
@@ -392,7 +441,7 @@ var updateLevel = function updateLevel() {
 };
 
 exports.updateLevel = updateLevel;
-},{"./life":"life.js","./hero":"hero.js","./enemies":"enemies/index.js"}],"enemies/index.js":[function(require,module,exports) {
+},{"./life":"life.js","./ship":"ship.js","./enemies":"enemies/index.js"}],"enemies/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -402,7 +451,7 @@ exports.resetEnemies = exports.drawEnemies = exports.generateEnemies = void 0;
 
 var _canvas = require("../canvas");
 
-var _hero = require("../hero");
+var _ship = require("../ship");
 
 var _collision = require("../collision");
 
@@ -418,16 +467,21 @@ function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.
 
 function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
 
-var enemiesCount = 50;
+var enemiesCount = 30;
 var enemies = [];
 
 var generateEnemies = function generateEnemies() {
   enemies = [].concat(_toConsumableArray(enemies), _toConsumableArray(_toConsumableArray(Array(enemiesCount + _game.game.stage).keys()).map(function (_) {
     return {
-      speed: (0, _utils.random)(0.1, Math.min(1 + _game.game.stage, _hero.hero.speed - 1)),
-      width: 30,
-      height: 30,
-      x: (0, _utils.random)(-20, _canvas.canvas.width - 20),
+      speed: (0, _utils.random)(0.1, Math.min(1 + _game.game.stage, _ship.ship.speed - 1)),
+      width: 20,
+      height: 20,
+      armor: 10,
+      points: {
+        hit: 1,
+        shotDown: 10
+      },
+      x: (0, _utils.random)(0, _canvas.canvas.width - 20),
       y: (0, _utils.random)(-1000, -30)
     };
   })));
@@ -435,29 +489,46 @@ var generateEnemies = function generateEnemies() {
 
 exports.generateEnemies = generateEnemies;
 
-var hitHero = function hitHero(enemy) {
-  if (!_hero.hero.hit && (0, _collision.collision)(enemy, _hero.hero)) {
-    _hero.hero.hit = true;
+var hitShip = function hitShip(enemy) {
+  if (!_ship.ship.hit && (0, _collision.collision)(enemy, _ship.ship)) {
+    _ship.ship.hit = true;
     _game.game.lifes -= 1;
     setTimeout(function () {
-      _hero.hero.hit = false;
+      _ship.ship.hit = false;
     }, 2000);
   }
+};
+
+var hitByMunition = function hitByMunition(enemy, indexEnemies) {
+  _ship.munitions.forEach(function (munition, indexMunitions) {
+    if ((0, _collision.collision)(enemy, munition)) {
+      enemy.armor -= munition.power;
+      _game.game.score += enemy.points.hit;
+
+      if (enemy.armor <= 0) {
+        _game.game.score += enemy.points.shotDown;
+        enemies.splice(indexEnemies, 1);
+      }
+
+      _ship.munitions.splice(indexMunitions, 1);
+    }
+  });
 };
 
 var moveEnemies = function moveEnemies() {
   enemies.forEach(function (enemy, index) {
     removeEnemyNotShown(enemy, index);
-    hitHero(enemy);
+    hitShip(enemy);
+    hitByMunition(enemy, index);
     enemy.y += enemy.speed;
   });
 };
 
 var drawEnemies = function drawEnemies() {
-  if (enemies.length <= 50) (0, _game.updateLevel)();
+  if (enemies.length <= enemiesCount) (0, _game.updateLevel)();
   moveEnemies();
   enemies.forEach(function (enemy) {
-    _canvas.ctx.fillStyle = "rgb(165, 77, 105)";
+    _canvas.ctx.fillStyle = "rgb(50, 50, 50)";
 
     _canvas.ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
   });
@@ -476,7 +547,7 @@ var resetEnemies = function resetEnemies() {
 };
 
 exports.resetEnemies = resetEnemies;
-},{"../canvas":"canvas.js","../hero":"hero.js","../collision":"collision.js","../game":"game.js","../utils":"utils.js"}],"index.js":[function(require,module,exports) {
+},{"../canvas":"canvas.js","../ship":"ship.js","../collision":"collision.js","../game":"game.js","../utils":"utils.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 
 var _keys = require("./keys");
@@ -487,26 +558,43 @@ var _enemies = require("./enemies");
 
 var _life = require("./life");
 
-var _hero = require("./hero");
+var _ship = require("./ship");
 
 var _game = require("./game");
+
+var gameStatus = document.getElementById('game-status');
 
 var draw = function draw() {
   _canvas.ctx.clearRect(0, 0, _canvas.canvas.width, _canvas.canvas.height);
 
   (0, _enemies.drawEnemies)();
   (0, _life.drawLife)();
-  (0, _hero.drawHero)();
+  (0, _ship.drawShip)();
   (0, _game.drawStatusBar)();
+  handleGameStatus();
 };
 
 var update = function update() {
   setTimeout(function () {
-    if (_game.game.over && _keys.keysMap['Space']) (0, _game.reset)();
-    draw();
+    if (_game.game.over && _keys.keysMap['Enter']) (0, _game.reset)();
     if (_game.game.lifes === 0) (0, _game.gameOver)();
+    draw();
     if (!_game.game.paused) requestAnimationFrame(update);
   }, 1000 / 60);
+};
+
+var handleGameStatus = function handleGameStatus() {
+  if (_game.game.paused) {
+    gameStatus.style.display = 'block';
+
+    if (_game.game.over) {
+      gameStatus.innerHTML = "\n        GAME OVER\n        <br />\n        Press Enter to Restart\n      ";
+    } else {
+      gameStatus.innerHTML = "\n        &#10074;&#10074; Paused\n        <br />\n        Press Enter to resume\n      ";
+    }
+  } else {
+    gameStatus.style.display = 'none';
+  }
 };
 
 var start = function start() {
@@ -528,21 +616,21 @@ _canvas.canvas.addEventListener('click', function () {
 });
 
 _canvas.canvas.addEventListener('focus', function () {
-  start();
+  if (_game.game.paused) start();
 });
 
 _canvas.canvas.addEventListener('blur', function () {
-  pause();
+  if (!_game.game.paused) pause();
 });
 
 window.addEventListener('keydown', function () {
-  if (event.code === 'Space') togglePause();
+  if (event.code === 'Enter') togglePause();
   (0, _keys.populateKeysMap)();
 });
 window.addEventListener('keyup', function () {
   (0, _keys.populateKeysMap)();
 });
-},{"./keys":"keys.js","./canvas":"canvas.js","./enemies":"enemies/index.js","./life":"life.js","./hero":"hero.js","./game":"game.js"}],"../../../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./keys":"keys.js","./canvas":"canvas.js","./enemies":"enemies/index.js","./life":"life.js","./ship":"ship.js","./game":"game.js"}],"../../../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -569,7 +657,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53101" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50571" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
@@ -712,4 +800,4 @@ function hmrAccept(bundle, id) {
   });
 }
 },{}]},{},["../../../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","index.js"], null)
-//# sourceMappingURL=/game/dist/src.e31bb0bc.map
+//# sourceMappingURL=/src.e31bb0bc.map

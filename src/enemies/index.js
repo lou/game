@@ -1,48 +1,68 @@
 import { ctx, canvas } from '../canvas'
-import { hero } from '../hero'
+import { ship, munitions } from '../ship'
 import { collision } from '../collision'
 import { game, updateLevel } from '../game'
 import { random } from '../utils'
 
-const enemiesCount = 50
+const enemiesCount = 30
 let enemies = []
 
 export const generateEnemies = () => {
   enemies = [
     ...enemies,
     ...[...Array(enemiesCount + game.stage).keys()].map(_ => ({
-      speed: random(0.1, Math.min(1 + game.stage, hero.speed - 1)),
-      width: 30,
-      height: 30,
-      x: random(-20, canvas.width - 20),
+      speed: random(0.1, Math.min(1 + game.stage, ship.speed - 1)),
+      width: 20,
+      height: 20,
+      armor: 10,
+      points: {
+        hit: 1,
+        shotDown: 10,
+      },
+      x: random(0, canvas.width - 20),
       y: random(-1000, -30)
     }))
   ]
 }
 
-const hitHero = (enemy) => {
-  if (!hero.hit && collision(enemy, hero)) {
-    hero.hit = true
+const hitShip = (enemy) => {
+  if (!ship.hit && collision(enemy, ship)) {
+    ship.hit = true
     game.lifes -= 1
     setTimeout(() => {
-      hero.hit = false
+      ship.hit = false
     }, 2000)
   }
+}
+
+const hitByMunition = (enemy, indexEnemies) => {
+  munitions.forEach((munition, indexMunitions) => {
+    if (collision(enemy, munition)) {
+      enemy.armor -= munition.power
+      game.score += enemy.points.hit
+      if (enemy.armor <= 0) {
+        game.score += enemy.points.shotDown
+        enemies.splice(indexEnemies, 1)
+      }
+      munitions.splice(indexMunitions, 1)
+    }
+  })
 }
 
 const moveEnemies = () => {
   enemies.forEach((enemy, index) => {
     removeEnemyNotShown(enemy, index)
-    hitHero(enemy)
+    hitShip(enemy)
+    hitByMunition(enemy, index)
     enemy.y += enemy.speed
   })
 }
 
 export const drawEnemies = () => {
-  if (enemies.length <= 50) updateLevel()
+  if (enemies.length <= enemiesCount) updateLevel()
   moveEnemies()
   enemies.forEach(enemy => {
-    ctx.fillStyle = `rgb(165, 77, 105)`
+    ctx.fillStyle = `rgb(50, 50, 50)`
     ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height)
   })
 }

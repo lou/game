@@ -1,18 +1,19 @@
 import { resetLife, generateLife } from './life'
-import { resetHero } from './hero'
+import { resetShip } from './ship'
 import { resetEnemies, generateEnemies } from './enemies'
 
 
 export const statusBar = document.getElementById('status-bar')
 const lifesCount = document.getElementById('lifes')
-const gameStatus = document.getElementById('game-status')
 const stageCount = document.getElementById('stage')
+const score = document.getElementById('score')
 
 export const gameDefault = {
   lifes: 1,
   stage: 0,
   paused: true,
-  over: false
+  over: false,
+  score: 0
 }
 
 export let game = { ...gameDefault }
@@ -20,7 +21,7 @@ export let game = { ...gameDefault }
 let previousGame = {
   lifes: null,
   stage: null,
-  paused: null
+  score: null
 }
 
 export const drawStatusBar = () => {
@@ -28,21 +29,21 @@ export const drawStatusBar = () => {
     lifesCount.innerHTML = `♥ ${game.lifes}`
     previousGame.lifes = game.lifes
   }
-  if (game.paused !== previousGame.paused) {
-    gameStatus.innerHTML = `${game.paused ? '&#10074;&#10074;' : '▶'}`
-    previousGame.paused = game.paused
-  }
   if (game.stage !== previousGame.stage) {
     stageCount.innerText = `Stage ${game.stage}`
     previousGame.stage = game.stage
   }
+  if (game.score !== previousGame.score) {
+    score.innerText = game.score.toLocaleString()
+    previousGame.score = game.score
+  }
 }
 
 export const reset = () => {
-  resetHero()
+  resetShip()
   resetLife()
   resetEnemies()
-  game = { ...gameDefault }
+  game = { ...gameDefault, paused: false }
 
 }
 
