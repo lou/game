@@ -1,4 +1,4 @@
-import { resetLife, generateLife } from './life'
+import { resetBonuses } from './bonuses'
 import { resetShip } from './ship'
 import { resetEnemies, generateEnemies } from './enemies'
 
@@ -41,7 +41,7 @@ export const drawStatusBar = () => {
 
 export const reset = () => {
   resetShip()
-  resetLife()
+  resetBonuses()
   resetEnemies()
   game = { ...gameDefault, paused: false }
 
@@ -54,6 +54,5 @@ export const gameOver = () => {
 
 export const updateLevel = () => {
   game.stage += 1
-  generateLife()
   generateEnemies()
 }

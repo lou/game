@@ -1,7 +1,7 @@
 import { populateKeysMap, keysMap } from './keys'
 import { canvas, ctx } from './canvas'
 import { drawEnemies } from './enemies'
-import { drawLife } from './life'
+import { drawBonuses } from './bonuses'
 import { drawShip } from './ship'
 import { drawStatusBar, game, gameOver, reset } from './game'
 
@@ -10,7 +10,7 @@ const gameStatus = document.getElementById('game-status')
 const draw = () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   drawEnemies()
-  drawLife()
+  drawBonuses()
   drawShip()
   drawStatusBar()
   handleGameStatus()
